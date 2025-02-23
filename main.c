@@ -58,16 +58,29 @@ char* OSCmsgAppendString(char* msg, char* in)
 void OSCmsgAddMetadata(char* msg, int ilen, int intendedArgs)
 {
 	memset(msg, 0, ilen*4);
-	msg[0] = 4;						// the arg type offset, in chars
-	msg[1] = (intendedArgs)/4 + 2;	// the value offset, in ints
+	msg[0] = 5;						// the arg type offset, in chars
+	msg[1] = (intendedArgs+1)/4 + 2;	// the value offset, in ints
 	msg[2] = ilen;					// total length, for len warnings
+	msg[4] = ',';					// marker for beginning of args
 }
 
 // the actual sender function (unimplemented)
-void sendMessage(char* address, int* port, char* msg, char* len) 
+void sendMessage(char* host, int* port, char* address, char* msg, int msglen) 
 {
-	printf("Queued send to %s;%d, message body:\n\n", address, port);
-	printMsg(msg+4, len-1);
+	printf("Queued send to %s;%d, message body:\n\n", host, port);
+	//printMsg(msg+4, len-1);
+
+	int adrlen = 0;
+	while (address[adrlen] != '\0') adrlen++;
+	adrlen = (adrlen / 4) + 1;
+	// concatenate. we clip the first row of the msg as well, as it's internal metadata
+	char* fullmsg = (char*) malloc((adrlen + msglen - 1) * 4);
+	memcpy(fullmsg, address, adrlen * 4);
+	memcpy(fullmsg + adrlen * 4, &msg[4], (msglen*4)-4);
+
+	// sending code will go here, for now it's a printer
+	printMsg(fullmsg, (adrlen + msglen - 1));
+	free(fullmsg);
 };
 
 #define OSC_BUFFER_SIZE_INTS 8
@@ -77,13 +90,12 @@ int main()
 	// create the buffer
 	char buffer[OSC_BUFFER_SIZE_INTS*4];
 	//add info to it
-	OSCmsgAddMetadata(buffer, OSC_BUFFER_SIZE_INTS, 4);
+	OSCmsgAddMetadata(buffer, OSC_BUFFER_SIZE_INTS, 1);
 	OSCmsgAppendInt(buffer, 100000);
-	OSCmsgAppendFloat(buffer, 100000000);
 	OSCmsgAppendString(buffer, "hello!");
-	OSCmsgAppendInt(buffer, 65);
+	OSCmsgAppendFloat(buffer, 440.0);
 
-	sendMessage("127.0.0.1", 8000, buffer, OSC_BUFFER_SIZE_INTS);
+	sendMessage("127.0.0.1", 8000, "/oscillator/4/frequency", buffer, OSC_BUFFER_SIZE_INTS);
 
 	return 0;
 }
