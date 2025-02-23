@@ -18,22 +18,38 @@ void printMsg(char* msg, int len)
 // append an int to the message
 char* OSCmsgAppendInt(char* msg, int in)
 {
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
 	msg[msg[0]++] = 'i';
 	memcpy(&msg[msg[1]++*4], &in, sizeof(int));
 }
 // append a float to the message
 char* OSCmsgAppendFloat(char* msg, float in)
 {
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
 	msg[msg[0]++] = 'f';
 	memcpy(&msg[msg[1]++ * 4], &in, sizeof(int));
 }
 // append a string to the message
 char* OSCmsgAppendString(char* msg, char* in)
 {
-	msg[msg[0]++] = 's';
 	// standard c copies don't seem to be quite sufficient here
 	int len = 0;
 	while (in[len] != '\0') len++;
+	if (msg[1] + len / 4 >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	
+	msg[msg[0]++] = 's';
 	memcpy(&msg[msg[1] * 4], in, sizeof(char)*len);
 	msg[1] += len / 4 + 1;
 }
@@ -42,8 +58,8 @@ char* OSCmsgAppendString(char* msg, char* in)
 void OSCmsgAddMetadata(char* msg, int ilen, int intendedArgs)
 {
 	memset(msg, 0, ilen*4);
-	msg[0] = 4;						// the first arg offset, in chars
-	msg[1] = (intendedArgs)/4 + 2;	// the first value offset, in ints
+	msg[0] = 4;						// the arg type offset, in chars
+	msg[1] = (intendedArgs)/4 + 2;	// the value offset, in ints
 	msg[2] = ilen;					// total length, for len warnings
 }
 
@@ -65,7 +81,7 @@ int main()
 	OSCmsgAppendInt(buffer, 100000);
 	OSCmsgAppendFloat(buffer, 100000000);
 	OSCmsgAppendString(buffer, "hello!");
-	OSCmsgAppendInt(buffer, 67);
+	OSCmsgAppendInt(buffer, 65);
 
 	sendMessage("127.0.0.1", 8000, buffer, OSC_BUFFER_SIZE_INTS);
 
