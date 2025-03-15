@@ -11,12 +11,12 @@ void printMsg(char* msg, int len)
 	}
 }
 
-//  since we're working on the kernel level, i don't want to nitroduce
+//  since we're working on the kernel level, i don't want to introduce
 // anything more complicated than like an array, so when creating an osc message
 // with commands we use the first byte for metadata and the rest for the message.
 
 // append an int to the message
-char* OSCmsgAppendInt(char* msg, int in)
+void OSCmsgAppendInt(char* msg, int in)
 {
 	if (msg[1] >= msg[2])
 	{
@@ -27,7 +27,7 @@ char* OSCmsgAppendInt(char* msg, int in)
 	memcpy(&msg[msg[1]++*4], &in, sizeof(int));
 }
 // append a float to the message
-char* OSCmsgAppendFloat(char* msg, float in)
+void OSCmsgAppendFloat(char* msg, float in)
 {
 	if (msg[1] >= msg[2])
 	{
@@ -38,7 +38,7 @@ char* OSCmsgAppendFloat(char* msg, float in)
 	memcpy(&msg[msg[1]++ * 4], &in, sizeof(int));
 }
 // append a string to the message
-char* OSCmsgAppendString(char* msg, char* in)
+void OSCmsgAppendString(char* msg, char* in)
 {
 	// standard c copies don't seem to be quite sufficient here
 	int len = 0;
@@ -52,6 +52,124 @@ char* OSCmsgAppendString(char* msg, char* in)
 	msg[msg[0]++] = 's';
 	memcpy(&msg[msg[1] * 4], in, sizeof(char)*len);
 	msg[1] += len / 4 + 1;
+}
+// additional types below
+// 64bit int
+void OSCmsgAppendInt64(char* msg, long long* in)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = 'h';
+	memcpy(&msg[msg[1]++ * 4], &in, sizeof(long long));
+}
+// todo: timetags
+// double
+void OSCmsgAppendDouble(char* msg, double* in)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = 'd';
+	memcpy(&msg[msg[1]++ * 4], &in, sizeof(double));
+}
+// alternate string
+void OSCmsgAppendString(char* msg, char* in)
+{
+	// standard c copies don't seem to be quite sufficient here
+	int len = 0;
+	while (in[len] != '\0') len++;
+	if (msg[1] + len / 4 >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+
+	msg[msg[0]++] = 'S';
+	memcpy(&msg[msg[1] * 4], in, sizeof(char)*len);
+	msg[1] += len / 4 + 1;
+}
+// single character
+void OSCmsgAppendChar(char* msg, char in)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = 'c';
+	memcpy(&msg[msg[1]++ * 4], &in, sizeof(char));
+	// dont need to fill remainder w/ 0s bc we do that at init
+}
+// rgb color
+void OSCmsgAppendColor(char* msg, char r, char g, char b, char a)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = 'r';
+	memcpy(&msg[msg[1] * 4], &r, sizeof(char));
+	memcpy(&msg[msg[1] * 4 + 1], &g, sizeof(char));
+	memcpy(&msg[msg[1] * 4 + 2], &b, sizeof(char));
+	memcpy(&msg[msg[1] * 4 + 3], &a, sizeof(char));
+	msg[1]++;
+	// dont need to fill remainder w/ 0s bc we do that at init
+}
+// todo: midi message
+// true and false
+void OSCmsgAppendBool(char* msg, int in)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	if (in)
+		msg[msg[0]++] = 'T';
+	else
+		msg[msg[0]++] = 'F';
+}
+void OSCmsgAppendNil(char* msg)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = 'N';
+}
+void OSCmsgAppendInfinitum(char* msg)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = 'I';
+}
+void OSCmsgAppendArrayStart(char* msg)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = '[';
+}
+void OSCmsgAppendArrayEnd(char* msg)
+{
+	if (msg[1] >= msg[2])
+	{
+		puts("Not enough space! Create a larger buffer.");
+		return;
+	}
+	msg[msg[0]++] = ']';
 }
 
 // the first int size is used for metadata about the message
