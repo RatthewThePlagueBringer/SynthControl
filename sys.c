@@ -2828,7 +2828,7 @@ SYSCALL_DEFINE2(print_msg, char*, msg, int, len) {
         return -EFAULT;
     }
 
-    for (i = 0; i < len * 4; i++) {
+    for (i = 0; i < len; i++) {
         printk(KERN_EMERG "%c (%d)\t", message[i], message[i]);
         
         if (!((i + 1) % 4)) {
@@ -3077,48 +3077,38 @@ SYSCALL_DEFINE3(add_meta, char*, msg, int, ilen, int, intendedArgs) {
 	return 0;
 }
 
-SYSCALL_DEFINE5(send_msg, char*, host, int*, port, char*, address, char*, msg, int, len) {
+SYSCALL_DEFINE4(send_msg, char*, addr, int, port, char*, msg, int, len) {
 	int adrlen = 0;
 	char* fullmsg;
 	long ret;
 	char message[4098];
-	char host_addr[4098];
-	char dest_addr[4098];
-	int* dest_port;
+	char address[4098];
 	int i;
 
 	memset(message, 0, 4098);
 	ret = copy_from_user(message, msg, 4098);
 
-	memset(host_addr, 0, 4098);
-	ret = copy_from_user(host_addr, host, 4098);
+	memset(address, 0, 4098);
+	ret = copy_from_user(address, addr, 4098);
 
-	memset(dest_addr, 0, 4098);
-	ret = copy_from_user(dest_addr, address, 4098);
-
-	memset(dest_port, 0, sizeof(int));
-	ret = copy_from_user(dest_port, port, sizeof(int));
-
-	printk("Queued send to %s;%d, message body:\n\n", host_addr, dest_port);
+	printk("Queued send to %s;%d. Message contents:\n\n", address, port);
 	
-	while (dest_addr[adrlen] != '\0') adrlen++;
+	while (address[adrlen] != '\0') adrlen++;
 	adrlen = (adrlen / 4) + 1;
 
 	fullmsg = (char*) kmalloc((adrlen + len - 1) * 4, GFP_KERNEL);
-	memcpy(fullmsg, dest_addr, adrlen * 4);
+	memcpy(fullmsg, address, adrlen * 4);
 	memcpy(fullmsg + adrlen * 4, &message[4], (len*4)-4);
 
-	// sending code will go here
+	// sending code will go here, for now just prints
 
-	printk(KERN_EMERG "\nHELLO EVERYNYAN\n\n");
-
-	for (i = 0; i < len * 4; i++) {
-        printk(KERN_EMERG "%c (%d)\t", message[i], message[i]);
+	for (i = 0; i < len; i++) {
+        	printk(KERN_EMERG "%c (%d)\t", message[i], message[i]);
         
-        if (!((i + 1) % 4)) {
-            printk(KERN_EMERG "%c", '\n');
-        }
-    }
+        	if (!((i + 1) % 4)) {
+           		printk(KERN_EMERG "%c", '\n');
+       		}
+   	}
 
 	kfree(fullmsg);
 	return 0;
