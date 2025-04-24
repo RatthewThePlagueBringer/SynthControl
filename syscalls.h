@@ -1312,4 +1312,4 @@ asmlinkage long sys_append_infinitum(char* msg);
 asmlinkage long sys_append_array_start(char* msg);
 asmlinkage long sys_append_array_end(char* msg);
 asmlinkage long sys_add_meta(char* msg, int ilen, int intendedArgs);
-asmlinkage long sys_send_msg(char* host, int* port, char* address, char* msg, int len);
+asmlinkage long sys_send_msg(char* addr, int port, char* msg, int len);
