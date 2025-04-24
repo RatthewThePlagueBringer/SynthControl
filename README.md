@@ -2,7 +2,7 @@
 Lightweight Linux kernel-level implementation of Open Sound Control (OSC).
 
 ## Project Description
-Open Sound Control (OSC) is a lightweight audio message protocol used for sending audo messages to devices. One of its greatest points of pain is how there are hundreds of different versions and it can become unclear which version to use for your project. Our goal with this project was to create a standardized version of OSC for Linux that existed within the kernel itself, which not only streamlines the process of finding the correct version of OSC but also provides benefits such as message security and processing speeds by removing unecessary layers between device communication, since the kernel already handles that directly anyways.
+Open Sound Control (OSC) is a lightweight audio message protocol used for sending audo messages to devices. One of its greatest points of pain is how there are hundreds of different versions and it can become unclear which version to use for your project. Our goal with this project was to create a standardized version of OSC for Linux that existed within the kernel itself, which not only streamlines the process of finding the correct version of OSC but also provides benefits such as message security and processing speeds by removing unecessary layers between device communication, since the kernel already handles that directly anyways. Note: This project is still a WIP! It does not yet implement all OSC data types such as floats or doubles, nor does it deal with bundles or blobs.
 
 ## Installation Instructions
 
