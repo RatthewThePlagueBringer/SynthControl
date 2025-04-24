@@ -2809,116 +2809,93 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct compat_sysinfo __user *, info)
 #endif /* CONFIG_COMPAT */
 
 /* SynthControl */
+
 SYSCALL_DEFINE2(print_msg, char*, msg, int, len) {
+	char *message;
+    long ret;
+    int i;
+    
+    message = kmalloc(len + 1, GFP_KERNEL);
+    if (!message) {
+        return -ENOMEM;
+    }
+    
+    memset(message, 0, len + 1);
+    ret = copy_from_user(message, msg, len);
+    
+    if (ret > 0) {
+        kfree(message);
+        return -EFAULT;
+    }
 
-	char message[len + 1];
-	long ret = copy_from_user(message, msg, len);
-
-	message[len] = '\0';
-
-	int i;
-	for (i = 0; i < len; i++) {
-		printk( KERN_INFO "%c (%d)\t", message[i], message[i]);
-		if (!((i + 1) % 4)) {
-			printk("\n");
-		}
-	}
-
-	printk("\n");
-	return 0;
+    for (i = 0; i < len * 4; i++) {
+        printk(KERN_EMERG "%c (%d)\t", message[i], message[i]);
+        
+        if (!((i + 1) % 4)) {
+            printk(KERN_EMERG "%c", '\n');
+        }
+    }
+    
+    kfree(message);
+    return 0;
 }
 
 SYSCALL_DEFINE2(append_int, char*, msg, int, in) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = 'i';
 	memcpy(&message[message[1]++*4], &in, sizeof(int));
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, sizeof(message));
 
 	return 0;
 }
 
 SYSCALL_DEFINE2(append_int64, char*, msg, long long, in) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = 'h';
 	memcpy(&message[message[1]++ * 4], &in, sizeof(long long));
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 
-	return 0;
-}
-
-SYSCALL_DEFINE2(append_double, char*, msg, double, in) {
-
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
-	
-	if (message[1] >= message[2])
-	{
-		printk("Not enough space! Create a larger buffer.");
-		return -1;
-	}
-	message[message[0]++] = 'd';
-	memcpy(&message[message[1]++ * 4], &in, sizeof(double));
-
-	long ret2 = copy_to_user(msg, message, 4098);
-	
-	return 0;
-}
-
-SYSCALL_DEFINE2(append_float, char*, msg, float, in) {
-
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
-	
-	if (message[1] >= message[2])
-	{
-		printk("Not enough space! Create a larger buffer.");
-		return -1;
-	}
-	message[message[0]++] = 'f';
-	memcpy(&message[message[1]++ * 4], &in, sizeof(int));
-
-	long ret2 = copy_to_user(msg, message, 4098);
-	
 	return 0;
 }
 
 SYSCALL_DEFINE2(append_string, char*, msg, char*, in) {
-
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
-
-	char input[4099];
-	memset(input, 0, 4099);
-	long ret2 = copy_from_user(input, in, 4098);
-	
+	long ret;
+	char message[4098];
+	char input[4098];
 	int len = 0;
+
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
+
+	memset(input, 0, 4098);
+	ret = copy_from_user(input, in, 4098);
+	
 	while (input[len] != '\0') len++;
 	if (message[1] + len / 4 >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	
@@ -2926,39 +2903,41 @@ SYSCALL_DEFINE2(append_string, char*, msg, char*, in) {
 	memcpy(&message[message[1] * 4], input, sizeof(char)*len);
 	message[1] += len / 4 + 1;
 
-	long ret3 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE2(append_char, char*, msg, char, in) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = 'c';
 	memcpy(&message[message[1]++ * 4], &in, sizeof(char));
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE5(append_color, char*, msg, char, r, char, g, char, b, char, a) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = 'r';
@@ -2968,20 +2947,21 @@ SYSCALL_DEFINE5(append_color, char*, msg, char, r, char, g, char, b, char, a) {
 	memcpy(&message[message[1] * 4 + 3], &a, sizeof(char));
 	message[1]++;
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE2(append_bool, char*, msg, int, in) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 
@@ -2992,88 +2972,97 @@ SYSCALL_DEFINE2(append_bool, char*, msg, int, in) {
 		message[message[0]++] = 'F';
 	}
 		
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE1(append_nil, char*, msg) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = 'N';
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE1(append_infinitum, char*, msg) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = 'I';
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE1(append_array_start, char*, msg) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = '[';
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE1(append_array_end, char*, msg) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
 	
 	if (message[1] >= message[2])
 	{
-		printk("Not enough space! Create a larger buffer.");
+		printk(KERN_EMERG "Not enough space! Create a larger buffer.");
 		return -1;
 	}
 	message[message[0]++] = ']';
 
-	long ret2 = copy_to_user(msg, message, 4098);
+	ret = copy_to_user(msg, message, 4098);
 	
 	return 0;
 }
 
 SYSCALL_DEFINE3(add_meta, char*, msg, int, ilen, int, intendedArgs) {
+	long ret;
+	char message[4098];
 
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret = copy_from_user(message, msg, 4098);
+	printk(KERN_EMERG "Writing metadata.");
+
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
+
+	printk(KERN_EMERG "\nMessage received from user: %s", message);
 	
 	memset(message, 0, ilen*4);
 	message[0] = 5;						// the arg type offset, in chars
@@ -3081,43 +3070,56 @@ SYSCALL_DEFINE3(add_meta, char*, msg, int, ilen, int, intendedArgs) {
 	message[2] = ilen;					// total length, for len warnings
 	message[4] = ',';					// marker for beginning of args
 	
-	long ret2 = copy_to_user(msg, message, 4098);
+	printk(KERN_EMERG "\nMessage to send to user: %s", message);
+
+	ret = copy_to_user(msg, message, 4098);
 
 	return 0;
 }
 
-SYSCALL_DEFINE5(send_msg, char*, host, int*, port, char*, address, char*, msg, int, msglen) {
-
-	char host_addr[4099];
-	memset(host_addr, 0, 4099);
-	long ret1 = copy_from_user(host_addr, host, 4098);
-
-	char port_num[sizeof(int) + 1];
-	memset(port_num, 0, sizeof(int) + 1);
-	long ret2 = copy_from_user(port_num, port, sizeof(int));
-
-	char dest_addr[4099];
-	memset(dest_addr, 0, 4099);
-	long ret3 = copy_from_user(dest_addr, address, 4098);
-
-	char message[4099];
-	memset(message, 0, 4099);
-	long ret4 = copy_from_user(message, msg, 4098);
-	
-	printk("Queued send to %s;%d, message body:\n\n", host, port);
-	//printMsg(msg+4, len-1);
-
+SYSCALL_DEFINE5(send_msg, char*, host, int*, port, char*, address, char*, msg, int, len) {
 	int adrlen = 0;
+	char* fullmsg;
+	long ret;
+	char message[4098];
+	char host_addr[4098];
+	char dest_addr[4098];
+	int* dest_port;
+	int i;
+
+	memset(message, 0, 4098);
+	ret = copy_from_user(message, msg, 4098);
+
+	memset(host_addr, 0, 4098);
+	ret = copy_from_user(host_addr, host, 4098);
+
+	memset(dest_addr, 0, 4098);
+	ret = copy_from_user(dest_addr, address, 4098);
+
+	memset(dest_port, 0, sizeof(int));
+	ret = copy_from_user(dest_port, port, sizeof(int));
+
+	printk("Queued send to %s;%d, message body:\n\n", host_addr, dest_port);
+	
 	while (dest_addr[adrlen] != '\0') adrlen++;
 	adrlen = (adrlen / 4) + 1;
-	// concatenate. we clip the first row of the msg as well, as it's internal metadata
-	char* fullmsg = (char*) malloc((adrlen + msglen - 1) * 4);
-	memcpy(fullmsg, dest_addr, adrlen * 4);
-	memcpy(fullmsg + adrlen * 4, &message[4], (msglen*4)-4);
 
-	// sending code will go here, for now it's a printer
-	printMsg(fullmsg, (adrlen + msglen - 1));
-	free(fullmsg);
-	
+	fullmsg = (char*) kmalloc((adrlen + len - 1) * 4, GFP_KERNEL);
+	memcpy(fullmsg, dest_addr, adrlen * 4);
+	memcpy(fullmsg + adrlen * 4, &message[4], (len*4)-4);
+
+	// sending code will go here
+
+	printk(KERN_EMERG "\nHELLO EVERYNYAN\n\n");
+
+	for (i = 0; i < len * 4; i++) {
+        printk(KERN_EMERG "%c (%d)\t", message[i], message[i]);
+        
+        if (!((i + 1) % 4)) {
+            printk(KERN_EMERG "%c", '\n');
+        }
+    }
+
+	kfree(fullmsg);
 	return 0;
 }
