@@ -348,18 +348,16 @@
 435 common  print_msg       __x64_sys_print_msg
 436 common  append_int       __x64_sys_append_int
 437 common  append_int64       __x64_sys_append_int64
-438 common  append_double       __x64_sys_append_double
-439 common  append_float       __x64_sys_append_float
-440 common  append_string       __x64_sys_append_string
-441 common  append_char       __x64_sys_append_char
-442 common  append_color       __x64_sys_append_color
-443 common  append_bool       __x64_sys_append_bool
-444 common  append_nil       __x64_sys_append_nil
-445 common  append_infinitum       __x64_sys_append_infinitum
-446 common  append_array_start       __x64_sys_append_array_start
-447 common  append_array_end       __x64_sys_append_array_end
-448 common  add_meta       __x64_sys_add_meta
-449 common  send_msg       __x64_sys_send_msg
+438 common  append_string       __x64_sys_append_string
+439 common  append_char       __x64_sys_append_char
+440 common  append_color       __x64_sys_append_color
+441 common  append_bool       __x64_sys_append_bool
+442 common  append_nil       __x64_sys_append_nil
+443 common  append_infinitum       __x64_sys_append_infinitum
+444 common  append_array_start       __x64_sys_append_array_start
+445 common  append_array_end       __x64_sys_append_array_end
+446 common  add_meta       __x64_sys_add_meta
+447 common  send_msg       __x64_sys_send_msg
 
 #
 # x32-specific system call numbers start at 512 to avoid cache impact
