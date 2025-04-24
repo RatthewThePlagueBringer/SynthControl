@@ -39,8 +39,8 @@ Refer to the following chart for information regarding each system call:
 
 ## Other Files
 - main.c - the prototype C code we wrote for our OSC implementation before translating it to kernal-space C code.
-- test.c - a testing file for simulating a program that sends OSC messages to an audio device. Run alongside client.c.
-- client.c - a program that simulates an OSC device receiving OSC messages. Run alongside test.c.
+- sender.c - a testing file for simulating a program that sends OSC messages to an audio device. Run after starting listener.c.
+- listener.c - a program that simulates an OSC device receiving OSC messages. Run before sender.c.
 
 ## Acknowledgements
 This project was developed as a senior design project at the University of Florida.
