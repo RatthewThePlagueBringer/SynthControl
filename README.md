@@ -21,21 +21,21 @@ Then reboot the device and you should be good to go!
 
 ## Syscall Documentation
 Refer to the following chart for information regarding each system call:
-| Syscall ID | Syscall Name | Description | Notes |
-| :---: | --- | --- | --- |
-| 435 | print_msg | prints the raw data for a message | Prints the information to the kernel log, use ```dmesg``` to see | 
-| 436 | append_int | adds an integer argument to the message | | 
-| 437 | append_int64 | adds a long long argument to the message | | 
-| 438 | append_string | adds a character array argument to the message | | 
-| 439 | append_char | adds a character argument to the message | | 
-| 440 | append_color | adds a 4 RGBA values as an argument to the message | | 
-| 441 | append_bool | adds a bool argument to the message | True and False are represented by 'T' and 'F' | 
-| 442 | append_nil | adds a null flag argument to the message | Represented by 'N' | 
-| 443 | append_infinitum | adds an infinity flag argument to the message | Represented by 'I' | 
-| 444 | append_array_start | adds a start bracket to the message | | 
-| 445 | append_array_end | adds an end bracket to the message | | 
-| 446 | add_meta | populates the first 5 bytes of the message buffer with meta data regarding the number of arguments and their offsets | | 
-| 447 | send_msg | sends the message through a UDP datagram to a listening OSC device | Currently does not function and only prints out the message, still under development | 
+| Syscall ID | Syscall Name | Description | Arguments | Notes |
+| :---: | --- | --- | --- | --- |
+| 435 | print_msg | prints the raw data for a message | char* msg, int len | Prints the information to the kernel log, use ```dmesg``` to see | 
+| 436 | append_int | adds an integer argument to the message | char* msg, int in | | 
+| 437 | append_int64 | adds a long long argument to the message | char* msg, long long in | | 
+| 438 | append_string | adds a character array argument to the message | char* msg, char* in | | 
+| 439 | append_char | adds a character argument to the message | char* msg, char in | | 
+| 440 | append_color | adds a 4 RGBA values as an argument to the message | char* msg, char r, char g, char b, char a | | 
+| 441 | append_bool | adds a bool argument to the message | char* msg, int in | True and False are represented by 'T' and 'F' | 
+| 442 | append_nil | adds a null flag argument to the message | char* msg | Represented by 'N' | 
+| 443 | append_infinitum | adds an infinity flag argument to the message | char* msg | Represented by 'I' | 
+| 444 | append_array_start | adds a start bracket to the message | char* msg | | 
+| 445 | append_array_end | adds an end bracket to the message | char* msg | | 
+| 446 | add_meta | populates the first 5 bytes of the message buffer with meta data regarding the number of arguments and their offsets | char* msg, int len, int numArgs | | 
+| 447 | send_msg | sends the message through a UDP datagram to a listening OSC device | char* addr, int port, char* msg, int len | Currently does not function and only prints out the message, still under development | 
 
 ## Other Files
 - main.c - the prototype C code we wrote for our OSC implementation before translating it to kernal-space C code.
